@@ -28,7 +28,7 @@ def login(email: str, password: str, db: Session = Depends(get_db)):
 
     # Verificar si el usuario existe y si la contraseña es correcta
     if not user or user.Password != password:
-        raise HTTPException(status_code=401, detail="Credenciales inválidas")
+        raise HTTPException(status_code=401, detail="Credenciales incorrectas")
     
     # Si la autenticación es exitosa, devolver la respuesta con los datos del usuario
     return {
