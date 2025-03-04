@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.contact import Contact
 from app.models.user import User
-from app.schemas.contact import ContactResponse, ContactListResponse
+from app.schemas.contact import ContactResponse, UserProfileResponse, ContactDetailResponse
 
 router = APIRouter()
 
@@ -85,22 +85,33 @@ def response_contact_requests(contactid: int, status: int, db: Session = Depends
         status=contact.Status
     )
 
-@router.get("/list_contacts/{user_id}", response_model=list[ContactListResponse])
+@router.get("/list_contacts/{user_id}", response_model=list[ContactDetailResponse])
 def list_contacts(user_id: int, db: Session = Depends(get_db)):
     contacts = db.query(Contact).filter(
         or_(
             Contact.UserIDProp == user_id,
             Contact.UserIDRec == user_id
         ),
-        Contact.Status == 2  # Solo contactos aceptados
+        Contact.Status == 2
     ).all()
 
     contact_list = [
-        ContactListResponse(
+        ContactDetailResponse(
             contactid=contact.ContactID,
-            contact_user_id=contact.UserIDRec if contact.UserIDProp == user_id else contact.UserIDProp
+            user=UserProfileResponse(
+                UserID=contact.UserIDRec if contact.UserIDProp == user_id else contact.UserIDProp,
+                FirstName=other_user.FirstName,
+                LastName=other_user.LastName,
+                UserName=other_user.UserName,
+                UserImage=other_user.UserImage,
+                Bio=other_user.Bio,
+                PhoneNumber=other_user.PhoneNumber
+            )
         )
         for contact in contacts
+        if (other_user := db.query(User).filter(
+            User.UserID == (contact.UserIDRec if contact.UserIDProp == user_id else contact.UserIDProp)
+        ).first()) is not None
     ]
 
     return contact_list

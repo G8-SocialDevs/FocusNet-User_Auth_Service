@@ -10,6 +10,15 @@ class ContactResponse(BaseModel):
     class Config:
         orm_mode = True
 
-class ContactListResponse(BaseModel):
+class UserProfileResponse(BaseModel):
+    UserID: int
+    FirstName: Optional[str]
+    LastName: Optional[str]
+    UserName: str
+    UserImage: Optional[str]
+    Bio: Optional[str]
+    PhoneNumber: str
+
+class ContactDetailResponse(BaseModel):
     contactid: int
-    contact_user_id: int
+    user: UserProfileResponse
